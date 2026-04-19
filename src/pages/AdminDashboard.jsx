@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUsers, createUser, deleteUser, updateUser, getKegiatan, createKegiatan, deleteKegiatan, updateKegiatan, getSubmissionsByKegiatan, getAttendanceByKegiatan, downloadAttendancePDF, getSubmissions, getAttendance, getRegistrations, updateRegStatus, deleteRegistration, getRegSettings, toggleRegistration, saveRegSettings, getFeedback, deleteFeedback } from '../data/store';
+import { getUsers, createUser, deleteUser, updateUser, getKegiatan, createKegiatan, deleteKegiatan, updateKegiatan, getSubmissionsByKegiatan, getAttendanceByKegiatan, downloadAttendancePDF, getSubmissions, getAttendance, getRegistrations, updateRegStatus, deleteRegistration, getRegSettings, toggleRegistration, getFeedback, deleteFeedback } from '../data/store';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
@@ -21,7 +21,7 @@ const AdminDashboard = () => {
   const [attList, setAttList] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
   const [regs, setRegs] = useState([]);
-  const [regSettings, setRegSettingsState] = useState({ isOpen: true, waNumber: '' });
+  const [regSettings, setRegSettingsState] = useState({ isOpen: true });
   const [feedbackList, setFeedbackList] = useState([]);
 
   // Question builder state
@@ -106,6 +106,7 @@ const AdminDashboard = () => {
     { key: 'kajian', label: '📖 Kajian', count: kegiatan.filter(k=>k.kategori==='kajian').length },
     { key: 'seminar', label: '🎤 Seminar', count: kegiatan.filter(k=>k.kategori==='seminar').length },
     { key: 'lomba', label: '🏆 Lomba', count: kegiatan.filter(k=>k.kategori==='lomba').length },
+    { key: 'arsip', label: '📁 Arsip & Dokumen', count: kegiatan.filter(k=>k.kategori==='arsip').length },
   ];
 
   const inp = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-hijau/20 focus:border-hijau";
@@ -143,6 +144,8 @@ const AdminDashboard = () => {
             <button onClick={() => setTab('users')} className={`lg:hidden px-2 py-1 rounded text-xs ${tab === 'users' ? 'bg-hijau/10 text-hijau' : 'text-gray-400'}`}>👥</button>
             <button onClick={() => setTab('kegiatan')} className={`lg:hidden px-2 py-1 rounded text-xs ${tab === 'kegiatan' ? 'bg-hijau/10 text-hijau' : 'text-gray-400'}`}>📋</button>
             <button onClick={() => setTab('keaktifan')} className={`lg:hidden px-2 py-1 rounded text-xs ${tab === 'keaktifan' ? 'bg-hijau/10 text-hijau' : 'text-gray-400'}`}>⭐</button>
+            <button onClick={() => setTab('pendaftaran')} className={`lg:hidden px-2 py-1 rounded text-xs ${tab === 'pendaftaran' ? 'bg-hijau/10 text-hijau' : 'text-gray-400'}`}>📝</button>
+            <button onClick={() => setTab('feedback')} className={`lg:hidden px-2 py-1 rounded text-xs ${tab === 'feedback' ? 'bg-hijau/10 text-hijau' : 'text-gray-400'}`}>💬</button>
             <Link to="/" className="lg:hidden text-gray-400 text-sm">🏠</Link>
           </div>
         </header>
@@ -150,7 +153,8 @@ const AdminDashboard = () => {
         <div className="p-4 sm:p-6">
           {success && <div className="p-3 rounded-xl bg-green-50 border border-green-100 text-sm text-green-700 mb-4">✅ {success}</div>}
 
-          {/* Stats */}
+          {/* Stats - only for users/kegiatan/keaktifan */}
+          {(tab === 'users' || tab === 'kegiatan' || tab === 'keaktifan') && (<>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
             <div className="bg-white rounded-xl p-4 border border-gray-100"><div className="text-2xl font-bold text-gray-900">{users.length}</div><div className="text-xs text-gray-400">Pengguna</div></div>
             <div className="bg-white rounded-xl p-4 border border-gray-100"><div className="text-2xl font-bold text-gray-900">{kegiatan.length}</div><div className="text-xs text-gray-400">Kegiatan</div></div>
@@ -167,6 +171,7 @@ const AdminDashboard = () => {
               + Tambah {tab === 'users' ? 'Pengguna' : 'Kegiatan'}
             </button>
           </div>
+          </>)}
 
           {/* === USERS TABLE === */}
           {tab === 'users' && (
@@ -230,9 +235,10 @@ const AdminDashboard = () => {
                                 k.kategori === 'materi-soal' ? 'bg-blue-50 text-blue-600' :
                                 k.kategori === 'kajian' ? 'bg-purple-50 text-purple-600' :
                                 k.kategori === 'seminar' ? 'bg-orange-50 text-orange-600' :
+                                k.kategori === 'arsip' ? 'bg-teal-50 text-teal-600' :
                                 'bg-yellow-50 text-yellow-700'
                               }`}>
-                                {k.kategori === 'materi-soal' ? '📝 Materi & Soal' : k.kategori === 'kajian' ? '📖 Kajian' : k.kategori === 'seminar' ? '🎤 Seminar' : '🏆 Lomba'}
+                                {k.kategori === 'materi-soal' ? '📝 Materi & Soal' : k.kategori === 'kajian' ? '📖 Kajian' : k.kategori === 'seminar' ? '🎤 Seminar' : k.kategori === 'arsip' ? '📁 Arsip' : '🏆 Lomba'}
                               </span>
                             </td>
                             <td className="px-4 py-3 hidden sm:table-cell">
@@ -413,6 +419,39 @@ const AdminDashboard = () => {
               </div>
             );
           })()}
+
+          {/* === TAB: PENDAFTARAN === */}
+          {tab === 'pendaftaran' && (
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div><h2 className="text-xl font-bold text-gray-900">📝 Pendaftaran Anggota</h2><p className="text-xs text-gray-400 mt-0.5">Kelola pendaftaran anggota baru</p></div>
+                <button onClick={() => { const s = toggleRegistration(); setRegSettingsState(s); }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${regSettings.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{regSettings.isOpen ? '🟢 Pendaftaran Dibuka' : '🔴 Pendaftaran Ditutup'}</button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[{l:'Total',v:regs.length,c:'text-blue-600',b:'bg-blue-50'},{l:'Menunggu',v:regs.filter(r=>r.status==='pending').length,c:'text-yellow-600',b:'bg-yellow-50'},{l:'Diterima',v:regs.filter(r=>r.status==='accepted').length,c:'text-green-600',b:'bg-green-50'},{l:'Ditolak',v:regs.filter(r=>r.status==='rejected').length,c:'text-red-600',b:'bg-red-50'}].map((s,i)=>(<div key={i} className={`${s.b} rounded-xl p-4 text-center`}><div className={`text-2xl font-bold ${s.c}`}>{s.v}</div><div className="text-xs text-gray-500 mt-1">{s.l}</div></div>))}
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                {regs.length === 0 ? <div className="p-10 text-center text-gray-400 text-sm">Belum ada pendaftar</div> : (
+                  <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="bg-gray-50 text-gray-400 text-xs uppercase"><th className="px-4 py-2.5">Nama</th><th className="px-4 py-2.5">NPM</th><th className="px-4 py-2.5 hidden sm:table-cell">Angkatan</th><th className="px-4 py-2.5 hidden md:table-cell">Alasan</th><th className="px-4 py-2.5">Status</th><th className="px-4 py-2.5">Aksi</th></tr></thead>
+                    <tbody className="divide-y divide-gray-50">{regs.map(r=>(<tr key={r.id} className="hover:bg-gray-50/50"><td className="px-4 py-3 font-medium text-gray-900">{r.nama}</td><td className="px-4 py-3 text-gray-600">{r.npm}</td><td className="px-4 py-3 hidden sm:table-cell text-gray-600">{r.angkatan}</td><td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs max-w-[200px] truncate">{r.alasan}</td><td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${r.status==='pending'?'bg-yellow-100 text-yellow-700':r.status==='accepted'?'bg-green-100 text-green-700':'bg-red-100 text-red-600'}`}>{r.status==='pending'?'⏳ Menunggu':r.status==='accepted'?'✅ Diterima':'❌ Ditolak'}</span><div className="text-[10px] text-gray-400 mt-0.5">{new Date(r.submittedAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></td><td className="px-4 py-3"><div className="flex items-center gap-1.5">{r.status==='pending'&&(<><button onClick={()=>setRegs(updateRegStatus(r.id,'accepted'))} className="text-green-600 text-xs font-medium">✅</button><button onClick={()=>setRegs(updateRegStatus(r.id,'rejected'))} className="text-red-500 text-xs font-medium">❌</button></>)}<button onClick={()=>{if(window.confirm('Hapus?'))setRegs(deleteRegistration(r.id))}} className="text-gray-400 hover:text-red-500 text-sm">🗑️</button></div></td></tr>))}</tbody></table></div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* === TAB: KRITIK & SARAN === */}
+          {tab === 'feedback' && (
+            <div className="space-y-5">
+              <div><h2 className="text-xl font-bold text-gray-900">💬 Kritik & Saran</h2><p className="text-xs text-gray-400 mt-0.5">Masukan dari pengunjung dan anggota</p></div>
+              <div className="grid grid-cols-3 gap-3">
+                {[{l:'Total',v:feedbackList.length,c:'text-blue-600',b:'bg-blue-50'},{l:'Kritik',v:feedbackList.filter(f=>f.jenis==='kritik').length,c:'text-red-600',b:'bg-red-50'},{l:'Saran',v:feedbackList.filter(f=>f.jenis==='saran').length,c:'text-blue-600',b:'bg-blue-50'}].map((s,i)=>(<div key={i} className={`${s.b} rounded-xl p-4 text-center`}><div className={`text-2xl font-bold ${s.c}`}>{s.v}</div><div className="text-xs text-gray-500 mt-1">{s.l}</div></div>))}
+              </div>
+              {feedbackList.length===0?<div className="bg-white rounded-xl border border-gray-100 p-10 text-center text-gray-400 text-sm">Belum ada masukan</div>:(
+                <div className="space-y-3">{feedbackList.map(fb=>(<div key={fb.id} className="bg-white rounded-xl border border-gray-100 p-4"><div className="flex items-start justify-between gap-3"><div className="flex items-start gap-3"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${fb.jenis==='kritik'?'bg-red-50':fb.jenis==='saran'?'bg-blue-50':'bg-green-50'}`}>{fb.jenis==='kritik'?'💬':fb.jenis==='saran'?'💡':'❤️'}</div><div><div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-gray-900 text-sm">{fb.nama}</span><span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${fb.jenis==='kritik'?'bg-red-50 text-red-600':fb.jenis==='saran'?'bg-blue-50 text-blue-600':'bg-green-50 text-green-600'}`}>{fb.jenis}</span><span className="text-[10px] text-gray-400">{new Date(fb.createdAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div><p className="text-sm text-gray-600 mt-1.5 whitespace-pre-wrap">{fb.pesan}</p></div></div><button onClick={()=>{if(window.confirm('Hapus?'))setFeedbackList(deleteFeedback(fb.id))}} className="text-gray-400 hover:text-red-500 text-sm shrink-0">🗑️</button></div></div>))}</div>
+              )}
+            </div>
+          )}
+
         </div>
       </main>
 
@@ -452,7 +491,7 @@ const AdminDashboard = () => {
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                   <select value={kegForm.kategori} onChange={e=>setKegForm({...kegForm,kategori:e.target.value})} className={inp}>
                     <option value="materi-soal">📝 Materi & Soal</option><option value="kajian">📖 Kajian</option>
-                    <option value="seminar">🎤 Seminar</option><option value="lomba">🏆 Lomba</option>
+                    <option value="seminar">🎤 Seminar</option><option value="lomba">🏆 Lomba</option><option value="arsip">Arsip & Dokumen</option>
                   </select></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Judul</label><input type="text" value={kegForm.title} onChange={e=>setKegForm({...kegForm,title:e.target.value})} className={inp} required /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label><textarea value={kegForm.description} onChange={e=>setKegForm({...kegForm,description:e.target.value})} className={inp} rows={2} /></div>
@@ -504,6 +543,7 @@ const AdminDashboard = () => {
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Tempat</label><input type="text" value={kegForm.tempat||''} onChange={e=>setKegForm({...kegForm,tempat:e.target.value})} className={inp} /></div>
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Pemateri</label><input type="text" value={kegForm.pemateri||''} onChange={e=>setKegForm({...kegForm,pemateri:e.target.value})} className={inp} /></div>
                     {kegForm.kategori === 'lomba' && <div><label className="block text-sm font-medium text-gray-700 mb-1">Hadiah</label><input type="text" value={kegForm.hadiah||''} onChange={e=>setKegForm({...kegForm,hadiah:e.target.value})} className={inp} /></div>}
+                    {kegForm.kategori === 'arsip' && <div><label className="block text-sm font-medium text-gray-700 mb-1">🔗 Link Dokumen (URL)</label><input type="url" value={kegForm.linkUrl||''} onChange={e=>setKegForm({...kegForm,linkUrl:e.target.value})} className={inp} placeholder="https://docs.google.com/..." /><p className="text-[10px] text-gray-400 mt-1">Link ke Google Forms, PDF, Excel, atau dokumen lainnya</p></div>}
                   </>
                 )}
 
@@ -642,149 +682,8 @@ const AdminDashboard = () => {
                 </div>
               );
             })()}
-          </div>
-        </div>
-      )}
-    </div>
 
-      {/* ===== TAB: PENDAFTARAN ===== */}
-      {tab === 'pendaftaran' && (
-        <div className="p-4 sm:p-6 space-y-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">📝 Pendaftaran Anggota</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Kelola pendaftaran anggota baru</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">Status:</span>
-                <button onClick={() => { const s = toggleRegistration(); setRegSettingsState(s); }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${regSettings.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                  {regSettings.isOpen ? '🟢 Dibuka' : '🔴 Ditutup'}
-                </button>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500">WA:</span>
-                <input type="text" value={regSettings.waNumber || ''} onChange={e => { const s = { ...regSettings, waNumber: e.target.value }; setRegSettingsState(s); saveRegSettings(s); }}
-                  className="px-2 py-1 rounded-lg border border-gray-200 text-xs w-36" placeholder="62812xxxx" />
-              </div>
-            </div>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Total Pendaftar', value: regs.length, color: 'text-blue-600', bg: 'bg-blue-50' },
-              { label: 'Menunggu', value: regs.filter(r => r.status === 'pending').length, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-              { label: 'Diterima', value: regs.filter(r => r.status === 'accepted').length, color: 'text-green-600', bg: 'bg-green-50' },
-              { label: 'Ditolak', value: regs.filter(r => r.status === 'rejected').length, color: 'text-red-600', bg: 'bg-red-50' },
-            ].map((s, i) => (
-              <div key={i} className={`${s.bg} rounded-xl p-4 text-center`}>
-                <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            {regs.length === 0 ? <div className="p-10 text-center text-gray-400 text-sm">Belum ada pendaftar</div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead><tr className="bg-gray-50 text-gray-400 text-xs uppercase">
-                    <th className="px-4 py-2.5">Nama</th><th className="px-4 py-2.5">NPM</th>
-                    <th className="px-4 py-2.5 hidden sm:table-cell">Angkatan</th>
-                    <th className="px-4 py-2.5">Status</th><th className="px-4 py-2.5">Aksi</th>
-                  </tr></thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {regs.map(r => (
-                      <tr key={r.id} className="hover:bg-gray-50/50">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-gray-900">{r.nama}</div>
-                          <div className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{r.alasan}</div>
-                        </td>
-                        <td className="px-4 py-3 text-gray-600">{r.npm}</td>
-                        <td className="px-4 py-3 hidden sm:table-cell text-gray-600">{r.angkatan}</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                            r.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                            r.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                            'bg-red-100 text-red-600'
-                          }`}>
-                            {r.status === 'pending' ? '⏳ Menunggu' : r.status === 'accepted' ? '✅ Diterima' : '❌ Ditolak'}
-                          </span>
-                          <div className="text-[10px] text-gray-400 mt-0.5">{new Date(r.submittedAt).toLocaleString('id-ID', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {r.status === 'pending' && (
-                              <>
-                                <button onClick={() => setRegs(updateRegStatus(r.id, 'accepted'))} className="text-green-600 hover:text-green-800 text-xs font-medium">✅ Terima</button>
-                                <button onClick={() => setRegs(updateRegStatus(r.id, 'rejected'))} className="text-red-500 hover:text-red-700 text-xs font-medium">❌ Tolak</button>
-                              </>
-                            )}
-                            <button onClick={() => { if (window.confirm('Hapus pendaftaran ' + r.nama + '?')) setRegs(deleteRegistration(r.id)); }} className="text-gray-400 hover:text-red-500 text-sm">🗑️</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ===== TAB: KRITIK & SARAN ===== */}
-      {tab === 'feedback' && (
-        <div className="p-4 sm:p-6 space-y-5">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">💬 Kritik & Saran</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Masukan dari pengunjung dan anggota</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              { label: 'Total Masukan', value: feedbackList.length, color: 'text-blue-600', bg: 'bg-blue-50' },
-              { label: 'Kritik', value: feedbackList.filter(f => f.jenis === 'kritik').length, color: 'text-red-600', bg: 'bg-red-50' },
-              { label: 'Saran', value: feedbackList.filter(f => f.jenis === 'saran').length, color: 'text-blue-600', bg: 'bg-blue-50' },
-            ].map((s, i) => (
-              <div key={i} className={`${s.bg} rounded-xl p-4 text-center`}>
-                <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {feedbackList.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-100 p-10 text-center text-gray-400 text-sm">Belum ada masukan</div>
-          ) : (
-            <div className="space-y-3">
-              {feedbackList.map(fb => (
-                <div key={fb.id} className="bg-white rounded-xl border border-gray-100 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
-                        fb.jenis === 'kritik' ? 'bg-red-50' : fb.jenis === 'saran' ? 'bg-blue-50' : 'bg-green-50'
-                      }`}>
-                        {fb.jenis === 'kritik' ? '💬' : fb.jenis === 'saran' ? '💡' : '❤️'}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-gray-900 text-sm">{fb.nama}</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            fb.jenis === 'kritik' ? 'bg-red-50 text-red-600' : fb.jenis === 'saran' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
-                          }`}>{fb.jenis}</span>
-                          <span className="text-[10px] text-gray-400">{new Date(fb.createdAt).toLocaleString('id-ID', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1.5 whitespace-pre-wrap">{fb.pesan}</p>
-                      </div>
-                    </div>
-                    <button onClick={() => { if (window.confirm('Hapus masukan ini?')) setFeedbackList(deleteFeedback(fb.id)); }} className="text-gray-400 hover:text-red-500 text-sm shrink-0">🗑️</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>

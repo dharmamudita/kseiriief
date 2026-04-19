@@ -45,27 +45,6 @@ export const deleteTopic = (topicId) => {
 // --- Initialize ---
 export const initializeForum = () => {
   if (!localStorage.getItem(STORAGE_KEY)) {
-    saveTopics([
-      {
-        id: 'topic-default-1',
-        userId: 'admin-001', userName: 'Admin RIIEF',
-        title: 'Selamat Datang di Forum KSEI RIIEF! 👋',
-        content: 'Forum ini adalah tempat diskusi antar anggota KSEI RIIEF. Silakan bertanya, berbagi ilmu, atau berdiskusi tentang ekonomi Islam dan kegiatan UKM kita. Mari jaga adab berdiskusi dan saling menghormati.',
-        category: 'umum',
-        replies: [
-          { id: 'reply-1', userId: 'admin-001', userName: 'Admin RIIEF', content: 'Jangan lupa ikuti kegiatan-kegiatan terbaru kami ya!', createdAt: '2024-03-02T10:00:00Z' },
-        ],
-        createdAt: '2024-03-01T08:00:00Z',
-      },
-      {
-        id: 'topic-default-2',
-        userId: 'admin-001', userName: 'Admin RIIEF',
-        title: 'Apa saja perbedaan bank syariah dan bank konvensional?',
-        content: 'Teman-teman, yuk diskusi tentang perbedaan mendasar antara bank syariah dan bank konvensional. Apa yang membuat bank syariah lebih sesuai dengan prinsip Islam?',
-        category: 'diskusi',
-        replies: [],
-        createdAt: '2024-03-05T09:00:00Z',
-      },
-    ]);
+    saveTopics([]);
   }
 };

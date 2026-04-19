@@ -9,6 +9,7 @@ const kategoriList = [
   { key: 'kajian', label: '📖 Kajian Rutin' },
   { key: 'seminar', label: '🎤 Seminar & Workshop' },
   { key: 'lomba', label: '🏆 Lomba & Kompetisi' },
+  { key: 'arsip', label: '📁 Arsip & Dokumen' },
 ];
 
 const Kegiatan = () => {
@@ -19,7 +20,7 @@ const Kegiatan = () => {
   const filtered = filter === 'semua' ? kegiatan : kegiatan.filter(k => k.kategori === filter);
 
   const getKategoriLabel = (kat) => {
-    const map = { 'materi-soal': '📝 Materi & Soal', 'kajian': '📖 Kajian', 'seminar': '🎤 Seminar', 'lomba': '🏆 Lomba' };
+    const map = { 'materi-soal': '📝 Materi & Soal', 'kajian': '📖 Kajian', 'seminar': '🎤 Seminar', 'lomba': '🏆 Lomba', 'arsip': '📁 Arsip' };
     return map[kat] || kat;
   };
 
@@ -83,7 +84,12 @@ const Kegiatan = () => {
                   )}
 
                   <div className="mt-3 pt-3 border-t border-gray-50">
-                    {k.kategori === 'materi-soal' ? (
+                    {k.kategori === 'arsip' && k.linkUrl ? (
+                      <a href={k.linkUrl} target="_blank" rel="noopener noreferrer"
+                        className="block text-center py-2 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition-colors">
+                        📂 Buka Dokumen
+                      </a>
+                    ) : k.kategori === 'materi-soal' ? (
                       <Link to={user ? `/kegiatan/${k.id}` : '/login'}
                         className="block text-center py-2 rounded-lg bg-hijau text-white text-sm font-semibold hover:bg-hijau-tua transition-colors">
                         {k.type === 'soal' ? 'Lihat & Kerjakan' : 'Baca Materi'}

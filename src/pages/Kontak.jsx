@@ -19,13 +19,7 @@ const Kontak = () => {
     }
     const result = submitRegistration(form);
     if (result.error) { setError(result.error); return; }
-
-    // Buka WA untuk kirim foto
-    const waText = `Assalamualaikum, saya ingin mendaftar sebagai anggota KSEI RIIEF.%0A%0ANama: ${form.nama}%0ANPM: ${form.npm}%0AAngkatan: ${form.angkatan}%0A%0ABerikut saya lampirkan:%0A1. Foto KTM%0A2. Bukti Pembayaran%0A3. Bukti Follow IG KSEI RIIEF`;
-    const waUrl = `https://wa.me/${settings.waNumber || '6281234567890'}?text=${waText}`;
-    window.open(waUrl, '_blank');
-
-    setMsg('Pendaftaran berhasil dikirim! Silakan kirim foto KTM, bukti bayar & bukti follow via WhatsApp.');
+    setMsg('Pendaftaran berhasil dikirim! Admin akan memverifikasi data Anda.');
     setSent(true);
     setForm({ nama: '', npm: '', angkatan: '', alasan: '' });
   };
@@ -42,16 +36,14 @@ const Kontak = () => {
       <section className="py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            {/* Info Kiri */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Gabung <span className="text-hijau">KSEI RIIEF</span></h2>
-              <p className="text-gray-400 text-sm mb-6">Lengkapi formulir pendaftaran dan kirim berkas melalui WhatsApp.</p>
+              <p className="text-gray-400 text-sm mb-6">Lengkapi formulir pendaftaran di bawah ini.</p>
               <div className="space-y-3">
                 {[
                   { emoji: '📝', title: 'Isi Formulir', value: 'Lengkapi nama, NPM, angkatan, dan alasan bergabung.' },
-                  { emoji: '📱', title: 'Kirim Berkas via WA', value: 'Setelah submit, kamu akan diarahkan ke WhatsApp untuk mengirim foto KTM, bukti pembayaran, dan bukti follow IG.' },
-                  { emoji: '✅', title: 'Tunggu Konfirmasi', value: 'Admin akan memverifikasi pendaftaran kamu. Pantau terus WA kamu!' },
+                  { emoji: '📩', title: 'Kirim Data', value: 'Klik kirim dan data kamu akan masuk ke admin untuk diverifikasi.' },
+                  { emoji: '✅', title: 'Tunggu Konfirmasi', value: 'Admin akan memverifikasi pendaftaran kamu.' },
                 ].map((c, i) => (
                   <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <span className="text-lg mt-0.5">{c.emoji}</span>
@@ -62,7 +54,6 @@ const Kontak = () => {
                   </div>
                 ))}
               </div>
-
               <div className="mt-6 p-4 rounded-xl bg-gray-50 border border-gray-100">
                 <div className="font-semibold text-gray-900 text-sm mb-2">📍 Kontak Kami</div>
                 <div className="text-gray-500 text-xs space-y-1">
@@ -72,7 +63,6 @@ const Kontak = () => {
               </div>
             </div>
 
-            {/* Form Kanan */}
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               {!settings.isOpen ? (
                 <div className="text-center py-16">
@@ -91,9 +81,7 @@ const Kontak = () => {
                 <>
                   <h3 className="font-bold text-gray-900 mb-1">📋 Formulir Pendaftaran</h3>
                   <p className="text-gray-400 text-xs mb-5">Isi data diri kamu dengan benar</p>
-
                   {error && <div className="mb-3 p-2.5 bg-red-50 text-red-600 rounded-lg text-xs">{error}</div>}
-
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
@@ -111,10 +99,7 @@ const Kontak = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Alasan Bergabung</label>
                       <textarea rows={3} value={form.alasan} onChange={e => setForm({ ...form, alasan: e.target.value })} className={`${inp} resize-none`} placeholder="Ceritakan alasan kamu ingin bergabung..." required />
                     </div>
-                    <button type="submit" className="w-full py-2.5 bg-hijau text-white font-semibold rounded-xl hover:bg-hijau-tua transition-colors text-sm">
-                      📩 Kirim Pendaftaran & Buka WhatsApp
-                    </button>
-                    <p className="text-[10px] text-gray-400 text-center">Setelah kirim, kamu akan diarahkan ke WhatsApp untuk mengirim foto KTM, bukti bayar & bukti follow</p>
+                    <button type="submit" className="w-full py-2.5 bg-hijau text-white font-semibold rounded-xl hover:bg-hijau-tua transition-colors text-sm">📩 Kirim Pendaftaran</button>
                   </form>
                 </>
               )}
