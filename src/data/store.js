@@ -46,11 +46,15 @@ import { initializeKegiatan } from './kegiatan';
 import { initializeSubmissions } from './submissions';
 import { initializeAttendance } from './attendance';
 import { initializeForum } from './forum';
+import { syncAllFromCloud } from './fireSync';
 
-export const initializeData = () => {
+export const initializeData = async () => {
+  // 1. Load defaults dulu (jika localStorage kosong)
   initializeUsers();
   initializeKegiatan();
   initializeSubmissions();
   initializeAttendance();
   initializeForum();
+  // 2. Sync dari Firestore (override localStorage jika ada data cloud)
+  await syncAllFromCloud();
 };

@@ -1,11 +1,10 @@
-// ===== DATABASE: SUBMISSION MANAGEMENT =====
-// Menyimpan dan mengelola data pengerjaan soal/quiz oleh pengguna
+import { saveAndSync } from './fireSync';
 
 const STORAGE_KEY = 'ksei_submissions';
 
 // --- Read ---
 export const getSubmissions = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-export const saveSubmissions = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export const saveSubmissions = (data) => saveAndSync(STORAGE_KEY, data);
 
 export const getSubmissionsByKegiatan = (kegiatanId) => getSubmissions().filter(s => s.kegiatanId === kegiatanId);
 export const getSubmissionsByUser = (userId) => getSubmissions().filter(s => s.userId === userId);

@@ -1,11 +1,10 @@
-// ===== DATABASE: FORUM DISKUSI =====
-// Menyimpan dan mengelola data forum diskusi antar anggota
+import { saveAndSync } from './fireSync';
 
 const STORAGE_KEY = 'ksei_forum';
 
 // --- Read ---
 export const getTopics = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-export const saveTopics = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export const saveTopics = (data) => saveAndSync(STORAGE_KEY, data);
 export const getTopicById = (id) => getTopics().find(t => t.id === id);
 
 // --- Create Topic ---

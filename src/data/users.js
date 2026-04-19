@@ -1,5 +1,4 @@
-// ===== DATABASE: USER MANAGEMENT =====
-// Menyimpan dan mengelola data pengguna (admin & member)
+import { saveAndSync } from './fireSync';
 
 const STORAGE_KEY = 'ksei_users';
 const SESSION_KEY = 'ksei_current_user';
@@ -16,7 +15,7 @@ export const defaultAdmin = {
 
 // --- Read ---
 export const getUsers = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-export const saveUsers = (users) => localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+export const saveUsers = (users) => saveAndSync(STORAGE_KEY, users);
 
 // --- Auth ---
 export const loginUser = (npm, password) => {

@@ -2,6 +2,7 @@
 // Menyimpan dan mengelola data absensi kegiatan (kajian, seminar, lomba)
 
 import { getUsers } from './users';
+import { saveAndSync } from './fireSync';
 
 const STORAGE_KEY = 'ksei_attendance';
 
@@ -25,7 +26,7 @@ export const generateAttendanceCode = (userId, kegiatanId) => {
 
 // --- Read ---
 export const getAttendance = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-export const saveAttendance = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export const saveAttendance = (data) => saveAndSync(STORAGE_KEY, data);
 
 export const getAttendanceByKegiatan = (kegiatanId) => getAttendance().filter(a => a.kegiatanId === kegiatanId);
 export const getUserAttendance = (kegiatanId, userId) => getAttendance().find(a => a.kegiatanId === kegiatanId && a.userId === userId);

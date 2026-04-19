@@ -10,10 +10,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    initializeData();
-    const u = getCurrentUser();
-    if (u) setUser(u);
-    setLoading(false);
+    const init = async () => {
+      await initializeData();
+      const u = getCurrentUser();
+      if (u) setUser(u);
+      setLoading(false);
+    };
+    init();
   }, []);
 
   const login = (npm, password) => {

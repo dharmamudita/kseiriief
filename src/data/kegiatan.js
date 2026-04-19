@@ -3,6 +3,7 @@
 
 import { getSubmissions, saveSubmissions } from './submissions';
 import { getAttendance, saveAttendance } from './attendance';
+import { saveAndSync } from './fireSync';
 
 const STORAGE_KEY = 'ksei_kegiatan';
 
@@ -166,7 +167,7 @@ export const getKegiatan = () => {
   const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   return raw.map(k => ({ ...k, status: computeStatus(k) }));
 };
-export const saveKegiatan = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export const saveKegiatan = (data) => saveAndSync(STORAGE_KEY, data);
 export const getKegiatanById = (id) => {
   const k = getKegiatan().find(k => k.id === id);
   return k ? { ...k, status: computeStatus(k) } : null;
