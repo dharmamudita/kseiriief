@@ -11,9 +11,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const init = async () => {
+      // Hapus session saat refresh → user harus login ulang
+      localStorage.removeItem('ksei_current_user');
       await initializeData();
-      const u = getCurrentUser();
-      if (u) setUser(u);
       setLoading(false);
     };
     init();
