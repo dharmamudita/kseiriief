@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 
 const socials = [
-  { name: 'Instagram', icon: '📸', url: 'https://instagram.com/kseiriief', color: 'hover:text-pink-400' },
-  { name: 'TikTok', icon: '🎵', url: 'https://tiktok.com/@kseiriief', color: 'hover:text-white' },
-  { name: 'YouTube', icon: '▶️', url: 'https://youtube.com/@kseiriief', color: 'hover:text-red-400' },
-  { name: 'Twitter', icon: '🐦', url: 'https://twitter.com/kseiriief', color: 'hover:text-blue-400' },
-  { name: 'Facebook', icon: '👤', url: 'https://facebook.com/kseiriief', color: 'hover:text-blue-500' },
-  { name: 'Blog', icon: '📝', url: 'https://kseiriief.blogspot.com', color: 'hover:text-orange-400' },
+  { name: 'Instagram', icon: '📸', url: 'https://www.instagram.com/kseiriief', color: 'hover:text-pink-400' },
+  { name: 'TikTok', icon: '🎵', url: 'https://www.tiktok.com/@ukmkseiriief', color: 'hover:text-white' },
+  { name: 'YouTube', icon: '▶️', url: 'https://youtube.com/@kseiriief2680', color: 'hover:text-red-400' },
+  { name: 'Facebook', icon: '👤', url: 'https://www.facebook.com/share/18WVML7Wb6/', color: 'hover:text-blue-500' },
+  { name: 'Blog', icon: '📝', url: 'http://kseiriief-uinril.blogspot.com/', color: 'hover:text-orange-400' },
   { name: 'Email', icon: '📧', url: 'mailto:kseiriief@radenintan.ac.id', color: 'hover:text-green-400' },
 ];
 
