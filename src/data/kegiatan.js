@@ -7,11 +7,10 @@ import { saveAndSync } from './fireSync';
 
 const STORAGE_KEY = 'ksei_kegiatan';
 
-// --- Auto status berdasarkan tanggal ---
+// --- Auto status berdasarkan tanggal & jam ---
 export const computeStatus = (k) => {
   if (!k.openDate && !k.closeDate) return k.status || 'open';
   const now = new Date();
-  now.setHours(0,0,0,0);
   const open = k.openDate ? new Date(k.openDate) : null;
   const close = k.closeDate ? new Date(k.closeDate) : null;
   if (open && now < open) return 'closed'; // belum dibuka

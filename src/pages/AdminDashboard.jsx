@@ -235,10 +235,10 @@ const AdminDashboard = () => {
                                 {k.status === 'open' ? '🟢 Buka' : '🔴 Tutup'}
                               </span>
                               {(k.openDate || k.closeDate) && (
-                                <div className="text-[10px] text-gray-400 mt-1">
-                                  {k.openDate && <span>{k.openDate}</span>}
+                                <div className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+                                  {k.openDate && <span>{new Date(k.openDate).toLocaleString('id-ID', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>}
                                   {k.openDate && k.closeDate && <span> → </span>}
-                                  {k.closeDate && <span>{k.closeDate}</span>}
+                                  {k.closeDate && <span>{new Date(k.closeDate).toLocaleString('id-ID', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>}
                                 </div>
                               )}
                             </td>
@@ -502,20 +502,20 @@ const AdminDashboard = () => {
                   </>
                 )}
 
-                {/* Tanggal Buka & Tutup */}
+                {/* Tanggal & Jam Buka/Tutup */}
                 <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">📅 Periode Kegiatan</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Tanggal Buka</label>
-                      <input type="date" value={kegForm.openDate||''} onChange={e=>setKegForm({...kegForm,openDate:e.target.value})} className={inp} />
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Dibuka Pada</label>
+                      <input type="datetime-local" value={kegForm.openDate||''} onChange={e=>setKegForm({...kegForm,openDate:e.target.value})} className={inp} />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Tanggal Tutup</label>
-                      <input type="date" value={kegForm.closeDate||''} onChange={e=>setKegForm({...kegForm,closeDate:e.target.value})} className={inp} />
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Ditutup Pada</label>
+                      <input type="datetime-local" value={kegForm.closeDate||''} onChange={e=>setKegForm({...kegForm,closeDate:e.target.value})} className={inp} />
                     </div>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-2">Status akan otomatis tersinkron berdasarkan tanggal. Jika dikosongkan, status default "Buka".</p>
+                  <p className="text-[10px] text-gray-400 mt-2">Status otomatis tersinkron berdasarkan tanggal & jam. Jika dikosongkan, status default "Buka".</p>
                 </div>
 
                 <button type="submit" className="w-full py-2.5 bg-hijau text-white font-semibold rounded-xl hover:bg-hijau-tua text-sm">{editId ? 'Simpan Perubahan' : 'Buat Kegiatan'}</button>
