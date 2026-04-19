@@ -15,6 +15,8 @@ const COLLECTIONS = {
   ksei_submissions: 'submissions',
   ksei_attendance: 'attendance',
   ksei_forum: 'forum',
+  ksei_registrations: 'registrations',
+  ksei_feedback: 'feedback',
 };
 
 // --- Push ke Firestore (async, fire-and-forget) ---

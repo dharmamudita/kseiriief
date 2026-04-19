@@ -17,7 +17,7 @@ const Navbar = () => {
     { name: 'Kegiatan', to: '/kegiatan' },
     { name: 'Leaderboard', to: '/leaderboard' },
     { name: 'Forum', to: '/forum' },
-    { name: 'Kontak', to: '/kontak' },
+    { name: 'Pendaftaran', to: '/kontak' },
   ];
 
   useEffect(() => {

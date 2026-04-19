@@ -64,11 +64,6 @@ const Login = () => {
           </form>
 
           <p className="mt-4 text-center text-xs text-gray-400">Akun dibuat oleh Admin.</p>
-
-          <div className="mt-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <p className="text-xs text-gray-500 font-medium mb-0.5">🔑 Demo Login Admin:</p>
-            <p className="text-xs text-gray-400">NPM: <span className="font-mono text-hijau font-semibold">admin</span> &nbsp;|&nbsp; Password: <span className="font-mono text-hijau font-semibold">admin123</span></p>
-          </div>
         </div>
 
         <div className="text-center mt-4">

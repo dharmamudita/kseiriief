@@ -1,11 +1,5 @@
 // ===== STORE HUB =====
 // File ini mengumpulkan semua database module agar mudah di-import
-// Struktur database:
-//   - users.js       → Manajemen pengguna (admin & member)
-//   - kegiatan.js    → Manajemen kegiatan (materi, kajian, seminar, lomba)
-//   - submissions.js → Manajemen pengerjaan soal/quiz
-//   - attendance.js  → Manajemen absensi kegiatan
-//   - forum.js       → Manajemen forum diskusi
 
 // --- Users ---
 export {
@@ -40,21 +34,36 @@ export {
   createTopic, addReply, deleteTopic, initializeForum,
 } from './forum';
 
+// --- Registrations ---
+export {
+  getRegistrations, saveRegistrations, getRegSettings, saveRegSettings,
+  toggleRegistration, submitRegistration, updateRegStatus, deleteRegistration,
+  initializeRegistrations,
+} from './registrations';
+
+// --- Feedback ---
+export {
+  getFeedback, saveFeedback, submitFeedback, deleteFeedback,
+  initializeFeedback,
+} from './feedback';
+
 // --- Initialize All ---
 import { initializeUsers } from './users';
 import { initializeKegiatan } from './kegiatan';
 import { initializeSubmissions } from './submissions';
 import { initializeAttendance } from './attendance';
 import { initializeForum } from './forum';
+import { initializeRegistrations } from './registrations';
+import { initializeFeedback } from './feedback';
 import { syncAllFromCloud } from './fireSync';
 
 export const initializeData = async () => {
-  // 1. Load defaults dulu (jika localStorage kosong)
   initializeUsers();
   initializeKegiatan();
   initializeSubmissions();
   initializeAttendance();
   initializeForum();
-  // 2. Sync dari Firestore (override localStorage jika ada data cloud)
+  initializeRegistrations();
+  initializeFeedback();
   await syncAllFromCloud();
 };
