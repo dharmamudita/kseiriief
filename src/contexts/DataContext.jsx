@@ -2,7 +2,7 @@
 // Semua data langsung dari Firestore (realtime), TANPA localStorage
 // Data otomatis sinkron di semua device
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { db } from '../firebase/config';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
@@ -80,6 +80,26 @@ export const DataProvider = ({ children }) => {
   const [regSettings, setRegSettings] = useState({ isOpen: true, waNumber: '6281234567890' });
   const [loading, setLoading] = useState(true);
 
+  // Refs untuk akses data terbaru di dalam callbacks (menghindari stale closure)
+  const usersRef = useRef(users);
+  const kegiatanRef = useRef(kegiatan);
+  const submissionsRef = useRef(submissions);
+  const attendanceRef = useRef(attendance);
+  const forumRef = useRef(forum);
+  const registrationsRef = useRef(registrations);
+  const feedbackRef = useRef(feedback);
+  const regSettingsRef = useRef(regSettings);
+
+  // Update refs setiap kali state berubah
+  useEffect(() => { usersRef.current = users; }, [users]);
+  useEffect(() => { kegiatanRef.current = kegiatan; }, [kegiatan]);
+  useEffect(() => { submissionsRef.current = submissions; }, [submissions]);
+  useEffect(() => { attendanceRef.current = attendance; }, [attendance]);
+  useEffect(() => { forumRef.current = forum; }, [forum]);
+  useEffect(() => { registrationsRef.current = registrations; }, [registrations]);
+  useEffect(() => { feedbackRef.current = feedback; }, [feedback]);
+  useEffect(() => { regSettingsRef.current = regSettings; }, [regSettings]);
+
   // ===== REALTIME LISTENERS =====
   useEffect(() => {
     let loadedCount = 0;
@@ -91,7 +111,6 @@ export const DataProvider = ({ children }) => {
         if (snap.exists() && snap.data().items) {
           setUsers(snap.data().items);
         } else {
-          // First time: create default admin
           const defaultData = [defaultAdmin];
           setUsers(defaultData);
           saveToFirestore('users', defaultData);
@@ -151,7 +170,6 @@ export const DataProvider = ({ children }) => {
       }, () => checkLoaded()),
     ];
 
-    // Safety timeout: if Firebase is slow, stop loading after 5s
     const timeout = setTimeout(() => setLoading(false), 5000);
 
     return () => {
@@ -162,112 +180,116 @@ export const DataProvider = ({ children }) => {
 
   // ===== USER FUNCTIONS =====
   const loginUser = useCallback((npm, password) => {
-    const user = users.find(u => u.npm === npm && u.password === password);
+    const user = usersRef.current.find(u => u.npm === npm && u.password === password);
     if (user) {
       const { password: _, ...safe } = user;
       return safe;
     }
     return null;
-  }, [users]);
+  }, []);
 
   const createUser = useCallback(async (data) => {
-    if (users.find(u => u.npm === data.npm)) return { error: 'NPM sudah terdaftar' };
+    const current = usersRef.current;
+    if (current.find(u => u.npm === data.npm)) return { error: 'NPM sudah terdaftar' };
     const newUser = { id: `user-${Date.now()}`, ...data, createdAt: new Date().toISOString().split('T')[0] };
-    const updated = [...users, newUser];
+    const updated = [...current, newUser];
     await saveToFirestore('users', updated);
     return { success: true };
-  }, [users]);
+  }, []);
 
   const updateUser = useCallback(async (id, data) => {
-    const dup = users.find(u => u.npm === data.npm && u.id !== id);
+    const current = usersRef.current;
+    const dup = current.find(u => u.npm === data.npm && u.id !== id);
     if (dup) return { error: 'NPM sudah digunakan user lain' };
-    const updated = users.map(u => u.id === id ? { ...u, ...data } : u);
+    const updated = current.map(u => u.id === id ? { ...u, ...data } : u);
     await saveToFirestore('users', updated);
     return { success: true };
-  }, [users]);
+  }, []);
 
   const deleteUser = useCallback(async (id) => {
-    const updated = users.filter(u => u.id !== id);
+    const updated = usersRef.current.filter(u => u.id !== id);
     await saveToFirestore('users', updated);
-  }, [users]);
+  }, []);
 
   // ===== KEGIATAN FUNCTIONS =====
   const getKegiatanById = useCallback((id) => {
-    const k = kegiatan.find(k => k.id === id);
+    const k = kegiatanRef.current.find(k => k.id === id);
     return k ? { ...k, status: computeStatus(k) } : null;
-  }, [kegiatan]);
+  }, []);
 
   const createKegiatan = useCallback(async (data) => {
     const item = { id: `keg-${Date.now()}`, createdAt: new Date().toISOString().split('T')[0], ...data };
-    const rawKegiatan = kegiatan.map(k => { const { status, ...rest } = k; return rest; });
+    const rawKegiatan = kegiatanRef.current.map(k => { const { status, ...rest } = k; return rest; });
     const updated = [...rawKegiatan, item];
     await saveToFirestore('kegiatan', updated);
     return item;
-  }, [kegiatan]);
+  }, []);
 
   const updateKegiatan = useCallback(async (id, data) => {
-    const rawKegiatan = kegiatan.map(k => { const { status, ...rest } = k; return rest; });
+    const rawKegiatan = kegiatanRef.current.map(k => { const { status, ...rest } = k; return rest; });
     const updated = rawKegiatan.map(k => k.id === id ? { ...k, ...data } : k);
     await saveToFirestore('kegiatan', updated);
-  }, [kegiatan]);
+  }, []);
 
   const deleteKegiatan = useCallback(async (id) => {
-    const rawKegiatan = kegiatan.map(k => { const { status, ...rest } = k; return rest; });
+    const rawKegiatan = kegiatanRef.current.map(k => { const { status, ...rest } = k; return rest; });
     const updated = rawKegiatan.filter(k => k.id !== id);
     await saveToFirestore('kegiatan', updated);
-    // Also delete related submissions and attendance
-    const updatedSubs = submissions.filter(s => s.kegiatanId !== id);
+    const updatedSubs = submissionsRef.current.filter(s => s.kegiatanId !== id);
     await saveToFirestore('submissions', updatedSubs);
-    const updatedAtts = attendance.filter(a => a.kegiatanId !== id);
+    const updatedAtts = attendanceRef.current.filter(a => a.kegiatanId !== id);
     await saveToFirestore('attendance', updatedAtts);
-  }, [kegiatan, submissions, attendance]);
+  }, []);
 
   // ===== SUBMISSION FUNCTIONS =====
   const getSubmissionsByKegiatan = useCallback((kegiatanId) => {
-    return submissions.filter(s => s.kegiatanId === kegiatanId);
-  }, [submissions]);
+    return submissionsRef.current.filter(s => s.kegiatanId === kegiatanId);
+  }, []);
 
   const getSubmissionsByUser = useCallback((userId) => {
-    return submissions.filter(s => s.userId === userId);
-  }, [submissions]);
+    return submissionsRef.current.filter(s => s.userId === userId);
+  }, []);
 
   const getUserSubmission = useCallback((kegiatanId, userId) => {
-    return submissions.find(s => s.kegiatanId === kegiatanId && s.userId === userId);
-  }, [submissions]);
+    return submissionsRef.current.find(s => s.kegiatanId === kegiatanId && s.userId === userId);
+  }, []);
 
   const submitAnswer = useCallback(async (kegiatanId, userId, userName, answers, score) => {
+    const current = submissionsRef.current;
     const submission = {
       id: `sub-${Date.now()}`,
       kegiatanId, userId, userName, answers, score,
       submittedAt: new Date().toISOString(),
     };
-    const existing = submissions.findIndex(s => s.kegiatanId === kegiatanId && s.userId === userId);
+    const existing = current.findIndex(s => s.kegiatanId === kegiatanId && s.userId === userId);
     let updated;
     if (existing >= 0) {
-      updated = [...submissions];
+      updated = [...current];
       updated[existing] = submission;
     } else {
-      updated = [...submissions, submission];
+      updated = [...current, submission];
     }
     await saveToFirestore('submissions', updated);
     return submission;
-  }, [submissions]);
+  }, []);
 
   // ===== ATTENDANCE FUNCTIONS =====
   const getAttendanceByKegiatan = useCallback((kegiatanId) => {
-    return attendance.filter(a => a.kegiatanId === kegiatanId);
-  }, [attendance]);
+    return attendanceRef.current.filter(a => a.kegiatanId === kegiatanId);
+  }, []);
 
   const getUserAttendance = useCallback((kegiatanId, userId) => {
-    return attendance.find(a => a.kegiatanId === kegiatanId && a.userId === userId);
-  }, [attendance]);
+    return attendanceRef.current.find(a => a.kegiatanId === kegiatanId && a.userId === userId);
+  }, []);
 
   const recordAttendance = useCallback(async (kegiatanId, userId, userName, code) => {
-    const user = users.find(u => u.id === userId);
+    const currentUsers = usersRef.current;
+    const currentAtt = attendanceRef.current;
+    const user = currentUsers.find(u => u.id === userId);
     if (!user) return { error: 'User tidak ditemukan' };
     const expectedCode = generateAttendanceCode(userId, kegiatanId);
     if (code.toUpperCase() !== expectedCode) return { error: 'Kode absensi salah' };
-    const exists = attendance.find(a => a.kegiatanId === kegiatanId && a.userId === userId);
+    const exists = currentAtt.find(a => a.kegiatanId === kegiatanId && a.userId === userId);
     if (exists) return { error: 'Anda sudah absen untuk kegiatan ini' };
     const record = {
       id: `att-${Date.now()}`,
@@ -275,13 +297,13 @@ export const DataProvider = ({ children }) => {
       code: expectedCode,
       timestamp: new Date().toISOString(),
     };
-    const updated = [...attendance, record];
+    const updated = [...currentAtt, record];
     await saveToFirestore('attendance', updated);
     return { success: true };
-  }, [users, attendance]);
+  }, []);
 
   const getAllCodesForKegiatan = useCallback((kegiatanId) => {
-    const members = users.filter(u => u.role !== 'admin');
+    const members = usersRef.current.filter(u => u.role !== 'admin');
     return members.map(u => ({
       userId: u.id,
       name: u.name,
@@ -289,12 +311,12 @@ export const DataProvider = ({ children }) => {
       divisi: u.divisi || '-',
       code: generateAttendanceCode(u.id, kegiatanId),
     }));
-  }, [users]);
+  }, []);
 
   // ===== FORUM FUNCTIONS =====
   const getTopicById = useCallback((id) => {
-    return forum.find(t => t.id === id);
-  }, [forum]);
+    return forumRef.current.find(t => t.id === id);
+  }, []);
 
   const createTopic = useCallback(async (userId, userName, title, content, category) => {
     const topic = {
@@ -303,72 +325,75 @@ export const DataProvider = ({ children }) => {
       replies: [],
       createdAt: new Date().toISOString(),
     };
-    const updated = [topic, ...forum];
+    const updated = [topic, ...forumRef.current];
     await saveToFirestore('forum', updated);
     return topic;
-  }, [forum]);
+  }, []);
 
   const addReply = useCallback(async (topicId, userId, userName, content) => {
-    const topicIndex = forum.findIndex(t => t.id === topicId);
+    const current = forumRef.current;
+    const topicIndex = current.findIndex(t => t.id === topicId);
     if (topicIndex < 0) return null;
     const reply = {
       id: `reply-${Date.now()}`,
       userId, userName, content,
       createdAt: new Date().toISOString(),
     };
-    const updated = forum.map((t, i) => {
+    const updated = current.map((t, i) => {
       if (i === topicIndex) return { ...t, replies: [...t.replies, reply] };
       return t;
     });
     await saveToFirestore('forum', updated);
     return reply;
-  }, [forum]);
+  }, []);
 
   const deleteTopic = useCallback(async (topicId) => {
-    const updated = forum.filter(t => t.id !== topicId);
+    const updated = forumRef.current.filter(t => t.id !== topicId);
     await saveToFirestore('forum', updated);
-  }, [forum]);
+  }, []);
 
   // ===== REGISTRATION FUNCTIONS =====
   const submitRegistration = useCallback(async (data) => {
-    const exists = registrations.find(r => r.npm === data.npm);
+    const current = registrationsRef.current;
+    const exists = current.find(r => r.npm === data.npm);
     if (exists) return { error: 'NPM ini sudah pernah mendaftar' };
     const reg = { id: `reg-${Date.now()}`, ...data, status: 'pending', submittedAt: new Date().toISOString() };
-    const updated = [...registrations, reg];
+    const updated = [...current, reg];
     await saveToFirestore('registrations', updated);
     return { success: true, reg };
-  }, [registrations]);
+  }, []);
 
   const updateRegStatus = useCallback(async (id, status) => {
-    const updated = registrations.map(r => r.id === id ? { ...r, status } : r);
+    const updated = registrationsRef.current.map(r => r.id === id ? { ...r, status } : r);
     await saveToFirestore('registrations', updated);
-  }, [registrations]);
+  }, []);
 
   const deleteRegistration = useCallback(async (id) => {
-    const updated = registrations.filter(r => r.id !== id);
+    const updated = registrationsRef.current.filter(r => r.id !== id);
     await saveToFirestore('registrations', updated);
-  }, [registrations]);
+  }, []);
 
   const toggleRegistration = useCallback(async () => {
-    const updated = { ...regSettings, isOpen: !regSettings.isOpen };
+    const current = regSettingsRef.current;
+    const updated = { ...current, isOpen: !current.isOpen };
     await setDoc(DOCS.regSettings, updated);
-  }, [regSettings]);
+  }, []);
 
   // ===== FEEDBACK FUNCTIONS =====
   const submitFeedback = useCallback(async (nama, jenis, pesan) => {
     const fb = { id: `fb-${Date.now()}`, nama, jenis, pesan, createdAt: new Date().toISOString() };
-    const updated = [fb, ...feedback];
+    const updated = [fb, ...feedbackRef.current];
     await saveToFirestore('feedback', updated);
     return fb;
-  }, [feedback]);
+  }, []);
 
   const deleteFeedback = useCallback(async (id) => {
-    const updated = feedback.filter(f => f.id !== id);
+    const updated = feedbackRef.current.filter(f => f.id !== id);
     await saveToFirestore('feedback', updated);
-  }, [feedback]);
+  }, []);
 
   const value = {
-    // State
+    // State (untuk render)
     users, kegiatan, submissions, attendance, forum, registrations, feedback, regSettings, loading,
     // User
     loginUser, createUser, updateUser, deleteUser,
