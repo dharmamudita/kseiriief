@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getTopics, createTopic, addReply, deleteTopic } from '../data/store';
+import { useData } from '../contexts/DataContext';
 import { Link } from 'react-router-dom';
 
 const categories = [
@@ -13,7 +13,8 @@ const categories = [
 
 const Forum = () => {
   const { user, isAdmin } = useAuth();
-  const [topics, setTopics] = useState(getTopics());
+  const data = useData();
+  const topics = data.forum;
   const [filter, setFilter] = useState('semua');
   const [openTopic, setOpenTopic] = useState(null);
   const [showNew, setShowNew] = useState(false);
@@ -24,25 +25,22 @@ const Forum = () => {
 
   const filtered = filter === 'semua' ? topics : topics.filter(t => t.category === filter);
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) return;
-    createTopic(user.id, user.name, newTitle.trim(), newContent.trim(), newCategory);
-    setTopics(getTopics());
+    await data.createTopic(user.id, user.name, newTitle.trim(), newContent.trim(), newCategory);
     setNewTitle(''); setNewContent(''); setShowNew(false);
   };
 
-  const handleReply = (topicId) => {
+  const handleReply = async (topicId) => {
     if (!replyText.trim()) return;
-    addReply(topicId, user.id, user.name, replyText.trim());
-    setTopics(getTopics());
+    await data.addReply(topicId, user.id, user.name, replyText.trim());
     setReplyText('');
   };
 
-  const handleDelete = (topicId) => {
+  const handleDelete = async (topicId) => {
     if (!window.confirm('Hapus topik ini?')) return;
-    deleteTopic(topicId);
-    setTopics(getTopics());
+    await data.deleteTopic(topicId);
     setOpenTopic(null);
   };
 

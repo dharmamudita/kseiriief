@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getKegiatan, getSubmissionsByUser, getAttendance } from '../data/store';
+import { useData } from '../contexts/DataContext';
 
 const MemberDashboard = () => {
   const { user } = useAuth();
+  const data = useData();
   const [tab, setTab] = useState('overview');
   const [certModal, setCertModal] = useState(null);
 
   if (!user) return null;
 
-  const kegiatan = getKegiatan();
-  const mySubs = getSubmissionsByUser(user.id);
-  const myAtts = getAttendance().filter(a => a.userId === user.id);
+  const kegiatan = data.kegiatan;
+  const mySubs = data.getSubmissionsByUser(user.id);
+  const myAtts = data.attendance.filter(a => a.userId === user.id);
 
   const quizPoints = mySubs.length * 15;
   const absenPoints = myAtts.length * 10;

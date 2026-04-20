@@ -37,8 +37,8 @@ export const deleteRegistration = (id) => {
   return list;
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeRegistrations = () => {
-  if (!localStorage.getItem(STORAGE_KEY)) saveRegistrations([]);
+  if (!localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   if (!localStorage.getItem(SETTINGS_KEY)) saveRegSettings({ isOpen: true, waNumber: '6281234567890' });
 };

@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser as storeLogin, logoutUser as storeLogout, getCurrentUser, initializeData } from '../data/store';
+import { createContext, useContext, useState } from 'react';
+import { useData } from './DataContext';
 
 const AuthContext = createContext();
 
@@ -7,25 +7,15 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const init = async () => {
-      // Hapus session saat refresh → user harus login ulang
-      localStorage.removeItem('ksei_current_user');
-      await initializeData();
-      setLoading(false);
-    };
-    init();
-  }, []);
+  const { loginUser, loading } = useData();
 
   const login = (npm, password) => {
-    const u = storeLogin(npm, password);
+    const u = loginUser(npm, password);
     if (u) { setUser(u); return { success: true }; }
     return { success: false, error: 'NPM atau Password salah' };
   };
 
-  const logout = () => { storeLogout(); setUser(null); };
+  const logout = () => { setUser(null); };
   const isAdmin = user?.role === 'admin';
 
   if (loading) return null;

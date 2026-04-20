@@ -22,7 +22,7 @@ export const deleteFeedback = (id) => {
   return list;
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeFeedback = () => {
-  if (!localStorage.getItem(STORAGE_KEY)) saveFeedback([]);
+  if (!localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
 };

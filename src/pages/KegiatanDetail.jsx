@@ -1,45 +1,44 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getKegiatanById, getUserSubmission, submitAnswer, recordAttendance, getUserAttendance } from '../data/store';
+import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const KegiatanDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [kegiatan, setKegiatan] = useState(null);
+  const data = useData();
   const [mySubmission, setMySubmission] = useState(null);
   const [myAttendance, setMyAttendance] = useState(null);
-  const [tab, setTab] = useState('info'); // info, materi, soal, hasil
+  const [tab, setTab] = useState('info');
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [absenCode, setAbsenCode] = useState('');
   const [absenMsg, setAbsenMsg] = useState(null);
 
+  const kegiatan = data.getKegiatanById(id);
+
   useEffect(() => {
-    const k = getKegiatanById(id);
-    if (!k) { navigate('/kegiatan'); return; }
-    setKegiatan(k);
-    if (user && k.kategori === 'materi-soal') {
-      const sub = getUserSubmission(id, user.id);
+    if (!kegiatan) { navigate('/kegiatan'); return; }
+    if (user && kegiatan.kategori === 'materi-soal') {
+      const sub = data.getUserSubmission(id, user.id);
       if (sub) { setMySubmission(sub); setTab('hasil'); }
     }
-    if (user && k.kategori !== 'materi-soal') {
-      const att = getUserAttendance(id, user.id);
+    if (user && kegiatan.kategori !== 'materi-soal') {
+      const att = data.getUserAttendance(id, user.id);
       if (att) setMyAttendance(att);
     }
-  }, [id, user]);
+  }, [id, user, kegiatan]);
 
   if (!kegiatan) return <div className="min-h-screen flex items-center justify-center text-gray-400">Memuat...</div>;
 
   const isMateriSoal = kegiatan.kategori === 'materi-soal';
   const hasSoal = kegiatan.questions && kegiatan.questions.length > 0;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!user) { navigate('/login'); return; }
     if (!hasSoal) return;
 
-    // Calculate score for pilihan_ganda
     let totalPoints = 0;
     let earnedPoints = 0;
     kegiatan.questions.forEach(q => {
@@ -47,13 +46,12 @@ const KegiatanDetail = () => {
       if (q.type === 'pilihan_ganda') {
         if (answers[q.id] === q.correctAnswer) earnedPoints += q.points;
       } else {
-        // Essay: give full points if answered (admin grades later)
         if (answers[q.id] && answers[q.id].trim().length > 10) earnedPoints += q.points;
       }
     });
 
     const score = Math.round((earnedPoints / totalPoints) * 100);
-    const sub = submitAnswer(id, user.id, user.name, answers, score);
+    const sub = await data.submitAnswer(id, user.id, user.name, answers, score);
     setMySubmission(sub);
     setSubmitted(true);
     setTab('hasil');
@@ -200,9 +198,9 @@ const KegiatanDetail = () => {
                         <input type="text" value={absenCode} onChange={e => setAbsenCode(e.target.value.toUpperCase())}
                           maxLength={6} placeholder="Masukkan 6 digit kode"
                           className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-mono tracking-widest text-center uppercase focus:outline-none focus:ring-2 focus:ring-hijau/20 focus:border-hijau" />
-                        <button onClick={() => {
+                        <button onClick={async () => {
                           if (absenCode.length !== 6) { setAbsenMsg({ type: 'error', text: 'Kode harus 6 karakter' }); return; }
-                          const r = recordAttendance(id, user.id, user.name, absenCode);
+                          const r = await data.recordAttendance(id, user.id, user.name, absenCode);
                           if (r.error) { setAbsenMsg({ type: 'error', text: r.error }); }
                           else { setAbsenMsg({ type: 'success', text: 'Absensi berhasil!' }); setMyAttendance({ code: absenCode, timestamp: new Date().toISOString() }); setAbsenCode(''); }
                         }} className="px-5 py-2.5 bg-hijau text-white rounded-xl text-sm font-semibold hover:bg-hijau-tua transition-colors">

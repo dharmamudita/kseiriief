@@ -60,9 +60,9 @@ export const deleteKegiatan = (id) => {
   return list;
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeKegiatan = () => {
   if (!localStorage.getItem(STORAGE_KEY)) {
-    saveKegiatan(defaultKegiatan);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultKegiatan));
   }
 };

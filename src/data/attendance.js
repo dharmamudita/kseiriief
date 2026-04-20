@@ -189,9 +189,9 @@ export const downloadAttendancePDF = (kegiatanId, kegiatanTitle) => {
   }, 5000);
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeAttendance = () => {
   if (!localStorage.getItem(STORAGE_KEY)) {
-    saveAttendance([]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   }
 };

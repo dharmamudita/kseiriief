@@ -1,10 +1,11 @@
-import { getUsers, getSubmissions, getAttendance, getKegiatan } from '../data/store';
+import { useData } from '../contexts/DataContext';
 
 const Leaderboard = () => {
-  const users = getUsers().filter(u => u.role !== 'admin');
-  const allSubs = getSubmissions();
-  const allAtts = getAttendance();
-  const kegiatan = getKegiatan();
+  const data = useData();
+  const users = data.users.filter(u => u.role !== 'admin');
+  const allSubs = data.submissions;
+  const allAtts = data.attendance;
+  const kegiatan = data.kegiatan;
 
   const memberData = users.map(m => {
     const mySubs = allSubs.filter(s => s.userId === m.id);

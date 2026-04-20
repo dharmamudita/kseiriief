@@ -62,9 +62,9 @@ export const deleteUser = (id) => {
   return filtered;
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeUsers = () => {
   if (!localStorage.getItem(STORAGE_KEY)) {
-    saveUsers([defaultAdmin]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([defaultAdmin]));
   }
 };

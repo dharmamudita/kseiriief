@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { DataProvider } from './contexts/DataContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -38,25 +39,27 @@ const Layout = ({ children }) => {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <ScrollToTop />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/tentang" element={<Tentang />} />
-            <Route path="/struktur" element={<Struktur />} />
-            <Route path="/kegiatan" element={<Kegiatan />} />
-            <Route path="/kegiatan/:id" element={<KegiatanDetail />} />
-            <Route path="/galeri" element={<Galeri />} />
-            <Route path="/kontak" element={<Kontak />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/forum" element={<Forum />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
-          </Routes>
-        </Layout>
-      </AuthProvider>
+      <DataProvider>
+        <AuthProvider>
+          <ScrollToTop />
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/tentang" element={<Tentang />} />
+              <Route path="/struktur" element={<Struktur />} />
+              <Route path="/kegiatan" element={<Kegiatan />} />
+              <Route path="/kegiatan/:id" element={<KegiatanDetail />} />
+              <Route path="/galeri" element={<Galeri />} />
+              <Route path="/kontak" element={<Kontak />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/forum" element={<Forum />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
+            </Routes>
+          </Layout>
+        </AuthProvider>
+      </DataProvider>
     </Router>
   );
 }

@@ -34,9 +34,9 @@ export const submitAnswer = (kegiatanId, userId, userName, answers, score) => {
   return submission;
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeSubmissions = () => {
   if (!localStorage.getItem(STORAGE_KEY)) {
-    saveSubmissions([]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   }
 };

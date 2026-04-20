@@ -1,23 +1,24 @@
 import { useState } from 'react';
-import { getRegSettings, submitRegistration } from '../data/store';
+import { useData } from '../contexts/DataContext';
 
 const inp = 'w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-hijau/20 focus:border-hijau text-sm';
 
 const Kontak = () => {
-  const settings = getRegSettings();
+  const data = useData();
+  const settings = data.regSettings;
   const [form, setForm] = useState({ nama: '', npm: '', angkatan: '', alasan: '' });
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setMsg('');
     if (!form.nama.trim() || !form.npm.trim() || !form.angkatan.trim() || !form.alasan.trim()) {
       setError('Semua field wajib diisi');
       return;
     }
-    const result = submitRegistration(form);
+    const result = await data.submitRegistration(form);
     if (result.error) { setError(result.error); return; }
     setMsg('Pendaftaran berhasil dikirim! Admin akan memverifikasi data Anda.');
     setSent(true);

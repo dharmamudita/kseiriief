@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getKegiatan } from '../data/store';
+import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const kategoriList = [
@@ -15,7 +15,7 @@ const kategoriList = [
 const Kegiatan = () => {
   const [filter, setFilter] = useState('semua');
   const { user } = useAuth();
-  const kegiatan = getKegiatan();
+  const { kegiatan } = useData();
 
   const filtered = filter === 'semua' ? kegiatan : kegiatan.filter(k => k.kategori === filter);
 
@@ -31,7 +31,6 @@ const Kegiatan = () => {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Kegiatan <span className="text-kuning">Kami</span></h1>
           <p className="text-white/50 text-sm mb-6">Berbagai kegiatan dan program kerja KSEI RIIEF</p>
-          {/* Filter tabs */}
           <div className="flex flex-wrap justify-center gap-2">
             {kategoriList.map(k => (
               <button key={k.key} onClick={() => setFilter(k.key)}
@@ -43,7 +42,6 @@ const Kegiatan = () => {
         </div>
       </section>
 
-      {/* List */}
       <section className="py-12 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           {filtered.length === 0 ? (
@@ -63,26 +61,15 @@ const Kegiatan = () => {
                   </div>
                   <h3 className="font-bold text-gray-900 mb-1.5">{k.title}</h3>
                   <p className="text-gray-400 text-sm mb-4 flex-1 line-clamp-2">{k.description}</p>
-
-                  {/* Extra info based on kategori */}
-                  {k.jadwal && (
-                    <div className="text-xs text-gray-500 mb-1">📅 {k.jadwal}</div>
-                  )}
-                  {k.tempat && (
-                    <div className="text-xs text-gray-500 mb-1">📍 {k.tempat}</div>
-                  )}
-                  {k.pemateri && (
-                    <div className="text-xs text-gray-500 mb-1">👤 {k.pemateri}</div>
-                  )}
-                  {k.hadiah && (
-                    <div className="text-xs text-gray-500 mb-1">🎁 {k.hadiah}</div>
-                  )}
+                  {k.jadwal && <div className="text-xs text-gray-500 mb-1">📅 {k.jadwal}</div>}
+                  {k.tempat && <div className="text-xs text-gray-500 mb-1">📍 {k.tempat}</div>}
+                  {k.pemateri && <div className="text-xs text-gray-500 mb-1">👤 {k.pemateri}</div>}
+                  {k.hadiah && <div className="text-xs text-gray-500 mb-1">🎁 {k.hadiah}</div>}
                   {k.kategori === 'materi-soal' && k.questions && (
                     <div className="text-xs text-gray-500 mb-1">
                       {k.type === 'soal' ? `📋 ${k.questions.length} soal` : '📄 Materi bacaan'}
                     </div>
                   )}
-
                   <div className="mt-3 pt-3 border-t border-gray-50">
                     {k.kategori === 'arsip' && k.linkUrl ? (
                       <a href={k.linkUrl} target="_blank" rel="noopener noreferrer"

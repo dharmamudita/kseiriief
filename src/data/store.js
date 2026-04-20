@@ -58,6 +58,11 @@ import { initializeFeedback } from './feedback';
 import { syncAllFromCloud } from './fireSync';
 
 export const initializeData = async () => {
+  // PENTING: Pull dari Firestore DULU sebelum initialize default
+  // Supaya data cloud tidak tertimpa oleh array kosong dari device baru
+  await syncAllFromCloud();
+
+  // Baru initialize default (hanya jika localStorage masih kosong setelah sync)
   initializeUsers();
   initializeKegiatan();
   initializeSubmissions();
@@ -65,5 +70,4 @@ export const initializeData = async () => {
   initializeForum();
   initializeRegistrations();
   initializeFeedback();
-  await syncAllFromCloud();
 };

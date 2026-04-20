@@ -42,9 +42,9 @@ export const deleteTopic = (topicId) => {
   saveTopics(filtered);
 };
 
-// --- Initialize ---
+// --- Initialize (hanya lokal, TIDAK push ke cloud) ---
 export const initializeForum = () => {
   if (!localStorage.getItem(STORAGE_KEY)) {
-    saveTopics([]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   }
 };

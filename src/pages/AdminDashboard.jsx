@@ -1,15 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUsers, createUser, deleteUser, updateUser, getKegiatan, createKegiatan, deleteKegiatan, updateKegiatan, getSubmissionsByKegiatan, getAttendanceByKegiatan, downloadAttendancePDF, getSubmissions, getAttendance, getRegistrations, updateRegStatus, deleteRegistration, getRegSettings, toggleRegistration, getFeedback, deleteFeedback } from '../data/store';
+import { useData } from '../contexts/DataContext';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { user: me } = useAuth();
+  const data = useData();
+  const users = data.users;
+  const kegiatan = data.kegiatan;
+  const regs = data.registrations;
+  const regSettings = data.regSettings;
+  const feedbackList = data.feedback;
   const [tab, setTab] = useState('users');
-  const [users, setUsers] = useState([]);
-  const [kegiatan, setKeg] = useState([]);
-  const [modal, setModal] = useState(null); // null, 'user', 'kegiatan', 'soal-detail'
-  const [editId, setEditId] = useState(null); // null = create mode, string = edit mode
+  const [modal, setModal] = useState(null);
+  const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState('');
   const [kegFilter, setKegFilter] = useState('semua');
   const [error, setError] = useState('');
@@ -20,31 +24,26 @@ const AdminDashboard = () => {
   const [subs, setSubs] = useState([]);
   const [attList, setAttList] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [regs, setRegs] = useState([]);
-  const [regSettings, setRegSettingsState] = useState({ isOpen: true });
-  const [feedbackList, setFeedbackList] = useState([]);
 
   // Question builder state
   const [qForm, setQForm] = useState({ type:'pilihan_ganda', question:'', options:['','','',''], correctAnswer:0, points:20 });
 
   const divisiList = ['Kaderisasi','Research & Development','Public Relation','Entrepreneurship','Kesekretariatan','Kemuslimahan','Media & Komunikasi'];
 
-  useEffect(() => { setUsers(getUsers()); setKeg(getKegiatan()); setRegs(getRegistrations()); setRegSettingsState(getRegSettings()); setFeedbackList(getFeedback()); }, []);
-
   const clearMsg = () => setTimeout(() => setSuccess(''), 2000);
 
   // User CRUD
   const resetUserForm = () => setUserForm({ name:'', npm:'', password:'', role:'member', divisi:'' });
-  const onSaveUser = (e) => {
+  const onSaveUser = async (e) => {
     e.preventDefault(); setError('');
     if (editId) {
-      const r = updateUser(editId, userForm);
+      const r = await data.updateUser(editId, userForm);
       if (r.error) { setError(r.error); return; }
-      setUsers(getUsers()); setSuccess('Pengguna berhasil diperbarui!');
+      setSuccess('Pengguna berhasil diperbarui!');
     } else {
-      const r = createUser(userForm);
+      const r = await data.createUser(userForm);
       if (r.error) { setError(r.error); return; }
-      setUsers(getUsers()); setSuccess('Akun berhasil dibuat!');
+      setSuccess('Akun berhasil dibuat!');
     }
     resetUserForm(); setEditId(null);
     setTimeout(() => setModal(null), 1000); clearMsg();
@@ -53,7 +52,7 @@ const AdminDashboard = () => {
     setUserForm({ name: u.name, npm: u.npm, password: u.password || '', role: u.role, divisi: u.divisi || '' });
     setEditId(u.id); setError(''); setModal('user');
   };
-  const onDeleteUser = (id, name) => { if (!window.confirm('Hapus pengguna ' + name + '?')) return; setUsers(deleteUser(id)); setSuccess('Dihapus'); clearMsg(); };
+  const onDeleteUser = async (id, name) => { if (!window.confirm('Hapus pengguna ' + name + '?')) return; await data.deleteUser(id); setSuccess('Dihapus'); clearMsg(); };
 
   // Kegiatan CRUD
   const addQuestion = () => {
@@ -66,33 +65,42 @@ const AdminDashboard = () => {
     setKegForm({ ...kegForm, questions: kegForm.questions.filter((_,i) => i !== idx) });
   };
   const resetKegForm = () => setKegForm({ kategori:'materi-soal', title:'', description:'', type:'soal', status:'open', openDate:'', closeDate:'', materiContent:'', questions:[], createdBy: me?.name || 'Admin', jadwal:'', tempat:'', pemateri:'', hadiah:'' });
-  const onSaveKeg = (e) => {
+  const onSaveKeg = async (e) => {
     e.preventDefault(); setError('');
     if (!kegForm.title.trim()) { setError('Judul wajib diisi'); return; }
-    const data = { ...kegForm };
-    if (data.kategori !== 'materi-soal') { delete data.questions; delete data.materiContent; delete data.type; }
+    const formData = { ...kegForm };
+    if (formData.kategori !== 'materi-soal') { delete formData.questions; delete formData.materiContent; delete formData.type; }
     if (editId) {
-      updateKegiatan(editId, data); setSuccess('Kegiatan berhasil diperbarui!');
+      await data.updateKegiatan(editId, formData); setSuccess('Kegiatan berhasil diperbarui!');
     } else {
-      createKegiatan(data); setSuccess('Kegiatan berhasil dibuat!');
+      await data.createKegiatan(formData); setSuccess('Kegiatan berhasil dibuat!');
     }
-    setKeg(getKegiatan()); resetKegForm(); setEditId(null);
+    resetKegForm(); setEditId(null);
     setTimeout(() => setModal(null), 1000); clearMsg();
   };
   const onEditKeg = (k) => {
     setKegForm({ kategori: k.kategori||'materi-soal', title: k.title||'', description: k.description||'', type: k.type||'soal', status: k.status||'open', openDate: k.openDate||'', closeDate: k.closeDate||'', materiContent: k.materiContent||'', questions: k.questions||[], createdBy: k.createdBy||'', jadwal: k.jadwal||'', tempat: k.tempat||'', pemateri: k.pemateri||'', hadiah: k.hadiah||'' });
     setEditId(k.id); setError(''); setModal('kegiatan');
   };
-  const onDeleteKeg = (id, title) => { if (!window.confirm('Hapus kegiatan ' + title + '?')) return; setKeg(deleteKegiatan(id)); setSuccess('Dihapus'); clearMsg(); };
-  const onToggleStatus = (id, current) => { updateKegiatan(id, { status: current === 'open' ? 'closed' : 'open' }); setKeg(getKegiatan()); };
+  const onDeleteKeg = async (id, title) => { if (!window.confirm('Hapus kegiatan ' + title + '?')) return; await data.deleteKegiatan(id); setSuccess('Dihapus'); clearMsg(); };
+  const onToggleStatus = async (id, current) => { await data.updateKegiatan(id, { status: current === 'open' ? 'closed' : 'open' }); };
 
-  const viewSubmissions = (kegId) => { setSubs(getSubmissionsByKegiatan(kegId)); setViewSub(kegId); setModal('soal-detail'); };
-  const viewAttendance = (kegId) => { setAttList(getAttendanceByKegiatan(kegId)); setViewSub(kegId); setModal('attendance'); };
+  const viewSubmissions = (kegId) => { setSubs(data.getSubmissionsByKegiatan(kegId)); setViewSub(kegId); setModal('soal-detail'); };
+  const viewAttendance = (kegId) => { setAttList(data.getAttendanceByKegiatan(kegId)); setViewSub(kegId); setModal('attendance'); };
 
   // PDF Download
   const downloadPDF = (kegId) => {
     const keg = kegiatan.find(k => k.id === kegId);
-    downloadAttendancePDF(kegId, keg?.title || '');
+    downloadAttendancePDFLocal(kegId, keg?.title || '');
+  };
+
+  // PDF generation (local function, uses data from context)
+  const downloadAttendancePDFLocal = (kegiatanId, kegiatanTitle) => {
+    const codes = data.getAllCodesForKegiatan(kegiatanId);
+    if (codes.length === 0) { alert('Belum ada member.'); return; }
+    const htmlContent = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Kode Absensi - ${kegiatanTitle}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;padding:30px;color:#333;background:#fff}.header{border-bottom:3px solid #006a4e;padding-bottom:12px;margin-bottom:8px}.header h1{font-size:20px;color:#006a4e}.header h2{font-size:14px;color:#666;font-weight:normal;margin-top:4px}.meta{font-size:11px;color:#999;margin-bottom:20px}table{width:100%;border-collapse:collapse}thead th{background:#006a4e;color:white;padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px}tbody td{padding:10px 14px;border-bottom:1px solid #e5e7eb;font-size:12px}tbody tr:nth-child(even){background:#f9fafb}.code-cell{font-family:'Courier New',monospace;font-size:16px;font-weight:bold;color:#006a4e;letter-spacing:4px;background:#f0fdf4;padding:6px 10px;border-radius:6px;display:inline-block;border:1px dashed #006a4e}.footer{margin-top:30px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:10px;color:#999;text-align:center}.warning{background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:11px;color:#92400e}@media print{body{padding:15px}.no-print{display:none}}</style></head><body><div class="header"><h1>Kode Absensi Kegiatan</h1><h2>${kegiatanTitle}</h2></div><p class="meta">Tanggal cetak: ${new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} | Total: ${codes.length} peserta</p><div class="warning">RAHASIA - Setiap kode bersifat unik per individu.</div><table><thead><tr><th>No</th><th>Nama</th><th>NPM</th><th>Divisi</th><th>Kode Absensi</th></tr></thead><tbody>${codes.map((c,i)=>`<tr><td>${i+1}</td><td><strong>${c.name}</strong></td><td>${c.npm}</td><td>${c.divisi}</td><td><span class="code-cell">${c.code}</span></td></tr>`).join('')}</tbody></table><div class="footer">UKM KSEI RIIEF - UIN Raden Intan Lampung</div><div class="no-print" style="text-align:center;margin-top:20px"><button onclick="window.print()" style="padding:10px 24px;background:#006a4e;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer">Cetak / Simpan PDF</button></div><script>window.onload=function(){setTimeout(function(){window.print()},800)};<\/script></body></html>`;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    window.open(URL.createObjectURL(blob), '_blank');
   };
 
   const filteredUsers = users.filter(u => u.name?.toLowerCase().includes(search.toLowerCase()) || u.npm?.includes(search));
@@ -278,8 +286,8 @@ const AdminDashboard = () => {
 
           {/* === KEAKTIFAN SECTION === */}
           {tab === 'keaktifan' && (() => {
-            const allSubs = getSubmissions();
-            const allAtts = getAttendance();
+            const allSubs = data.submissions;
+            const allAtts = data.attendance;
             const members = users.filter(u => u.role !== 'admin');
 
             // Calculate engagement data per member
@@ -425,7 +433,7 @@ const AdminDashboard = () => {
             <div className="space-y-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div><h2 className="text-xl font-bold text-gray-900">📝 Pendaftaran Anggota</h2><p className="text-xs text-gray-400 mt-0.5">Kelola pendaftaran anggota baru</p></div>
-                <button onClick={() => { const s = toggleRegistration(); setRegSettingsState(s); }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${regSettings.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{regSettings.isOpen ? '🟢 Pendaftaran Dibuka' : '🔴 Pendaftaran Ditutup'}</button>
+                <button onClick={() => data.toggleRegistration()} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${regSettings.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{regSettings.isOpen ? '🟢 Pendaftaran Dibuka' : '🔴 Pendaftaran Ditutup'}</button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[{l:'Total',v:regs.length,c:'text-blue-600',b:'bg-blue-50'},{l:'Menunggu',v:regs.filter(r=>r.status==='pending').length,c:'text-yellow-600',b:'bg-yellow-50'},{l:'Diterima',v:regs.filter(r=>r.status==='accepted').length,c:'text-green-600',b:'bg-green-50'},{l:'Ditolak',v:regs.filter(r=>r.status==='rejected').length,c:'text-red-600',b:'bg-red-50'}].map((s,i)=>(<div key={i} className={`${s.b} rounded-xl p-4 text-center`}><div className={`text-2xl font-bold ${s.c}`}>{s.v}</div><div className="text-xs text-gray-500 mt-1">{s.l}</div></div>))}
@@ -433,7 +441,7 @@ const AdminDashboard = () => {
               <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                 {regs.length === 0 ? <div className="p-10 text-center text-gray-400 text-sm">Belum ada pendaftar</div> : (
                   <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="bg-gray-50 text-gray-400 text-xs uppercase"><th className="px-4 py-2.5">Nama</th><th className="px-4 py-2.5">NPM</th><th className="px-4 py-2.5 hidden sm:table-cell">Angkatan</th><th className="px-4 py-2.5 hidden md:table-cell">Alasan</th><th className="px-4 py-2.5">Status</th><th className="px-4 py-2.5">Aksi</th></tr></thead>
-                    <tbody className="divide-y divide-gray-50">{regs.map(r=>(<tr key={r.id} className="hover:bg-gray-50/50"><td className="px-4 py-3 font-medium text-gray-900">{r.nama}</td><td className="px-4 py-3 text-gray-600">{r.npm}</td><td className="px-4 py-3 hidden sm:table-cell text-gray-600">{r.angkatan}</td><td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs max-w-[200px] truncate">{r.alasan}</td><td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${r.status==='pending'?'bg-yellow-100 text-yellow-700':r.status==='accepted'?'bg-green-100 text-green-700':'bg-red-100 text-red-600'}`}>{r.status==='pending'?'⏳ Menunggu':r.status==='accepted'?'✅ Diterima':'❌ Ditolak'}</span><div className="text-[10px] text-gray-400 mt-0.5">{new Date(r.submittedAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></td><td className="px-4 py-3"><div className="flex items-center gap-1.5">{r.status==='pending'&&(<><button onClick={()=>setRegs(updateRegStatus(r.id,'accepted'))} className="text-green-600 text-xs font-medium">✅</button><button onClick={()=>setRegs(updateRegStatus(r.id,'rejected'))} className="text-red-500 text-xs font-medium">❌</button></>)}<button onClick={()=>{if(window.confirm('Hapus?'))setRegs(deleteRegistration(r.id))}} className="text-gray-400 hover:text-red-500 text-sm">🗑️</button></div></td></tr>))}</tbody></table></div>
+                    <tbody className="divide-y divide-gray-50">{regs.map(r=>(<tr key={r.id} className="hover:bg-gray-50/50"><td className="px-4 py-3 font-medium text-gray-900">{r.nama}</td><td className="px-4 py-3 text-gray-600">{r.npm}</td><td className="px-4 py-3 hidden sm:table-cell text-gray-600">{r.angkatan}</td><td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs max-w-[200px] truncate">{r.alasan}</td><td className="px-4 py-3"><span className={`px-2 py-0.5 rounded text-xs font-semibold ${r.status==='pending'?'bg-yellow-100 text-yellow-700':r.status==='accepted'?'bg-green-100 text-green-700':'bg-red-100 text-red-600'}`}>{r.status==='pending'?'⏳ Menunggu':r.status==='accepted'?'✅ Diterima':'❌ Ditolak'}</span><div className="text-[10px] text-gray-400 mt-0.5">{new Date(r.submittedAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></td><td className="px-4 py-3"><div className="flex items-center gap-1.5">{r.status==='pending'&&(<><button onClick={()=>data.updateRegStatus(r.id,'accepted')} className="text-green-600 text-xs font-medium">✅</button><button onClick={()=>data.updateRegStatus(r.id,'rejected')} className="text-red-500 text-xs font-medium">❌</button></>)}<button onClick={()=>{if(window.confirm('Hapus?'))data.deleteRegistration(r.id)}} className="text-gray-400 hover:text-red-500 text-sm">🗑️</button></div></td></tr>))}</tbody></table></div>
                 )}
               </div>
             </div>
@@ -447,7 +455,7 @@ const AdminDashboard = () => {
                 {[{l:'Total',v:feedbackList.length,c:'text-blue-600',b:'bg-blue-50'},{l:'Kritik',v:feedbackList.filter(f=>f.jenis==='kritik').length,c:'text-red-600',b:'bg-red-50'},{l:'Saran',v:feedbackList.filter(f=>f.jenis==='saran').length,c:'text-blue-600',b:'bg-blue-50'}].map((s,i)=>(<div key={i} className={`${s.b} rounded-xl p-4 text-center`}><div className={`text-2xl font-bold ${s.c}`}>{s.v}</div><div className="text-xs text-gray-500 mt-1">{s.l}</div></div>))}
               </div>
               {feedbackList.length===0?<div className="bg-white rounded-xl border border-gray-100 p-10 text-center text-gray-400 text-sm">Belum ada masukan</div>:(
-                <div className="space-y-3">{feedbackList.map(fb=>(<div key={fb.id} className="bg-white rounded-xl border border-gray-100 p-4"><div className="flex items-start justify-between gap-3"><div className="flex items-start gap-3"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${fb.jenis==='kritik'?'bg-red-50':fb.jenis==='saran'?'bg-blue-50':'bg-green-50'}`}>{fb.jenis==='kritik'?'💬':fb.jenis==='saran'?'💡':'❤️'}</div><div><div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-gray-900 text-sm">{fb.nama}</span><span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${fb.jenis==='kritik'?'bg-red-50 text-red-600':fb.jenis==='saran'?'bg-blue-50 text-blue-600':'bg-green-50 text-green-600'}`}>{fb.jenis}</span><span className="text-[10px] text-gray-400">{new Date(fb.createdAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div><p className="text-sm text-gray-600 mt-1.5 whitespace-pre-wrap">{fb.pesan}</p></div></div><button onClick={()=>{if(window.confirm('Hapus?'))setFeedbackList(deleteFeedback(fb.id))}} className="text-gray-400 hover:text-red-500 text-sm shrink-0">🗑️</button></div></div>))}</div>
+                <div className="space-y-3">{feedbackList.map(fb=>(<div key={fb.id} className="bg-white rounded-xl border border-gray-100 p-4"><div className="flex items-start justify-between gap-3"><div className="flex items-start gap-3"><div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${fb.jenis==='kritik'?'bg-red-50':fb.jenis==='saran'?'bg-blue-50':'bg-green-50'}`}>{fb.jenis==='kritik'?'💬':fb.jenis==='saran'?'💡':'❤️'}</div><div><div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-gray-900 text-sm">{fb.nama}</span><span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${fb.jenis==='kritik'?'bg-red-50 text-red-600':fb.jenis==='saran'?'bg-blue-50 text-blue-600':'bg-green-50 text-green-600'}`}>{fb.jenis}</span><span className="text-[10px] text-gray-400">{new Date(fb.createdAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div><p className="text-sm text-gray-600 mt-1.5 whitespace-pre-wrap">{fb.pesan}</p></div></div><button onClick={()=>{if(window.confirm('Hapus?'))data.deleteFeedback(fb.id)}} className="text-gray-400 hover:text-red-500 text-sm shrink-0">🗑️</button></div></div>))}</div>
               )}
             </div>
           )}

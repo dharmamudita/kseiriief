@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { submitFeedback } from '../data/store';
+import { useData } from '../contexts/DataContext';
 
 const Tentang = () => {
+  const data = useData();
   const [fbForm, setFbForm] = useState({ nama: '', jenis: 'saran', pesan: '' });
   const [fbMsg, setFbMsg] = useState('');
   const [fbErr, setFbErr] = useState('');
 
-  const handleFeedback = (e) => {
+  const handleFeedback = async (e) => {
     e.preventDefault();
     setFbErr(''); setFbMsg('');
     if (!fbForm.nama.trim() || !fbForm.pesan.trim()) { setFbErr('Nama dan pesan wajib diisi'); return; }
-    submitFeedback(fbForm.nama.trim(), fbForm.jenis, fbForm.pesan.trim());
+    await data.submitFeedback(fbForm.nama.trim(), fbForm.jenis, fbForm.pesan.trim());
     setFbMsg('Terima kasih atas masukan Anda! 🙏');
     setFbForm({ nama: '', jenis: 'saran', pesan: '' });
     setTimeout(() => setFbMsg(''), 4000);
