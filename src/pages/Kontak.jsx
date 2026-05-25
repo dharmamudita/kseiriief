@@ -6,7 +6,7 @@ const inp = 'w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus
 const Kontak = () => {
   const data = useData();
   const settings = data.regSettings;
-  const [form, setForm] = useState({ nama: '', npm: '', angkatan: '', alasan: '' });
+  const [form, setForm] = useState({ nama: '', npm: '', angkatan: '', noHp: '', alasan: '' });
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
@@ -14,7 +14,7 @@ const Kontak = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setMsg('');
-    if (!form.nama.trim() || !form.npm.trim() || !form.angkatan.trim() || !form.alasan.trim()) {
+    if (!form.nama.trim() || !form.npm.trim() || !form.angkatan.trim() || !form.noHp.trim() || !form.alasan.trim()) {
       setError('Semua field wajib diisi');
       return;
     }
@@ -22,7 +22,7 @@ const Kontak = () => {
     if (result.error) { setError(result.error); return; }
     setMsg('Pendaftaran berhasil dikirim! Admin akan memverifikasi data Anda.');
     setSent(true);
-    setForm({ nama: '', npm: '', angkatan: '', alasan: '' });
+    setForm({ nama: '', npm: '', angkatan: '', noHp: '', alasan: '' });
   };
 
   return (
@@ -95,6 +95,10 @@ const Kontak = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Angkatan</label>
                       <input type="text" value={form.angkatan} onChange={e => setForm({ ...form, angkatan: e.target.value })} className={inp} placeholder="Contoh: 2024" required />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nomor HP / WhatsApp</label>
+                      <input type="tel" value={form.noHp} onChange={e => setForm({ ...form, noHp: e.target.value })} className={inp} placeholder="Contoh: 08123456789" required />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Alasan Bergabung</label>

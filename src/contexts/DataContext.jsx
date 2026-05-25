@@ -79,6 +79,7 @@ export const DataProvider = ({ children }) => {
   const [feedback, setFeedback] = useState([]);
   const [regSettings, setRegSettings] = useState({ isOpen: true, waNumber: '6281234567890' });
   const [loading, setLoading] = useState(true);
+  const [firestoreError, setFirestoreError] = useState(null);
 
   // Refs untuk akses data terbaru di dalam callbacks (menghindari stale closure)
   const usersRef = useRef(users);
@@ -106,17 +107,30 @@ export const DataProvider = ({ children }) => {
     const totalDocs = 8;
     const checkLoaded = () => { loadedCount++; if (loadedCount >= totalDocs) setLoading(false); };
 
+    const handleError = (name) => (err) => {
+      console.error(`❌ Firestore ${name} error:`, err.message);
+      setFirestoreError(`Gagal memuat data dari Firestore: ${err.message}`);
+      if (name === 'users') {
+        console.warn('⚠️ Using default admin as fallback');
+        setUsers([defaultAdmin]);
+      }
+      checkLoaded();
+    };
+
     const unsubs = [
       onSnapshot(DOCS.users, (snap) => {
         if (snap.exists() && snap.data().items) {
+          console.log('✅ Users loaded:', snap.data().items.length, 'users');
           setUsers(snap.data().items);
+          setFirestoreError(null);
         } else {
+          console.warn('⚠️ No users in Firestore, using defaults');
           const defaultData = [defaultAdmin];
           setUsers(defaultData);
           saveToFirestore('users', defaultData);
         }
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('users')),
 
       onSnapshot(DOCS.kegiatan, (snap) => {
         if (snap.exists() && snap.data().items) {
@@ -126,37 +140,37 @@ export const DataProvider = ({ children }) => {
           saveToFirestore('kegiatan', []);
         }
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('kegiatan')),
 
       onSnapshot(DOCS.submissions, (snap) => {
         setSubmissions(snap.exists() && snap.data().items ? snap.data().items : []);
         if (!snap.exists()) saveToFirestore('submissions', []);
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('submissions')),
 
       onSnapshot(DOCS.attendance, (snap) => {
         setAttendance(snap.exists() && snap.data().items ? snap.data().items : []);
         if (!snap.exists()) saveToFirestore('attendance', []);
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('attendance')),
 
       onSnapshot(DOCS.forum, (snap) => {
         setForum(snap.exists() && snap.data().items ? snap.data().items : []);
         if (!snap.exists()) saveToFirestore('forum', []);
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('forum')),
 
       onSnapshot(DOCS.registrations, (snap) => {
         setRegistrations(snap.exists() && snap.data().items ? snap.data().items : []);
         if (!snap.exists()) saveToFirestore('registrations', []);
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('registrations')),
 
       onSnapshot(DOCS.feedback, (snap) => {
         setFeedback(snap.exists() && snap.data().items ? snap.data().items : []);
         if (!snap.exists()) saveToFirestore('feedback', []);
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('feedback')),
 
       onSnapshot(DOCS.regSettings, (snap) => {
         if (snap.exists() && snap.data().isOpen !== undefined) {
@@ -167,7 +181,7 @@ export const DataProvider = ({ children }) => {
           setDoc(DOCS.regSettings, defaults).catch(() => {});
         }
         checkLoaded();
-      }, () => checkLoaded()),
+      }, handleError('regSettings')),
     ];
 
     const timeout = setTimeout(() => setLoading(false), 5000);
@@ -180,11 +194,13 @@ export const DataProvider = ({ children }) => {
 
   // ===== USER FUNCTIONS =====
   const loginUser = useCallback((npm, password) => {
+    console.log('🔑 Login attempt:', npm, '| Users in memory:', usersRef.current.length);
     const user = usersRef.current.find(u => u.npm === npm && u.password === password);
     if (user) {
       const { password: _, ...safe } = user;
       return safe;
     }
+    console.warn('❌ Login failed. Available NPMs:', usersRef.current.map(u => u.npm));
     return null;
   }, []);
 
